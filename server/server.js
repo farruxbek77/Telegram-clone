@@ -45,6 +45,19 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Health check endpoint for Render
+app.get('/', (req, res) => {
+    res.json({
+        status: 'ok',
+        message: 'Telegram Clone Backend API',
+        version: '1.0.0'
+    });
+});
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'healthy' });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 
