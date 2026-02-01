@@ -11,6 +11,7 @@ const CreateGroup = ({ onClose, onGroupCreated }) => {
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    // eslint-disable-next-line no-unused-vars
     const [groupImage, setGroupImage] = useState(null);
     const [groupImagePreview, setGroupImagePreview] = useState(null);
     const fileInputRef = useRef(null);

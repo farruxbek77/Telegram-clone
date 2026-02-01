@@ -434,8 +434,9 @@ body {
     }
 
     .main-chat {
-        height: calc(-webkit-fill-available - 200px);
+        height: -webkit-fill-available;
         height: calc(100vh - 200px);
+        max-height: calc(100vh - 200px);
     }
 
     .chat-header {
