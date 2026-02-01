@@ -2409,3 +2409,63 @@ body {
         height: 16px;
     }
 }
+
+/* No Chats Message */
+.no-chats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 40px 20px;
+    text-align: center;
+    color: #8b98a5;
+}
+
+.no-chats svg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+    color: #5288c1;
+}
+
+.no-chats h3 {
+    font-size: 18px;
+    font-weight: 500;
+    color: #ffffff;
+    margin: 0 0 10px 0;
+}
+
+.no-chats p {
+    font-size: 14px;
+    color: #8b98a5;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* No Messages */
+.no-messages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 40px 20px;
+    text-align: center;
+    color: #8b98a5;
+}
+
+.no-messages svg {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+    opacity: 0.2;
+    color: #5288c1;
+}
+
+.no-messages p {
+    font-size: 16px;
+    color: #8b98a5;
+    margin: 0;
+}

@@ -4,11 +4,11 @@
     "description": "Backend for Telegram clone",
     "main": "server.js",
     "scripts": {
-        "start": "node server.js",
+        "start": "node server-simple-fixed.js",
         "start-simple": "node server-simple.js",
         "start-phone": "node server-phone.js",
         "start-mongo": "node server-mongo.js",
-        "dev": "nodemon server.js",
+        "dev": "nodemon server-simple-fixed.js",
         "seed": "node seedData.js",
         "seed-mongo": "node seedMongo.js"
     },

@@ -608,3 +608,31 @@
         color: #8b98a5;
     }
 }
+
+/* Quick Login Buttons */
+.quick-login {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #2b3943;
+}
+
+.quick-login-btn {
+    padding: 8px 16px;
+    background: #2b3943;
+    color: #fff;
+    border: 1px solid #3d4f5c;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.quick-login-btn:hover:not(:disabled) {
+    background: #3d4f5c;
+    border-color: #5288c1;
+}
+
+.quick-login-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

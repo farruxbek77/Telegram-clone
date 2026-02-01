@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import { useAuth } from '../../context/AuthContext';
-import { imageAPI, videoAPI, fileAPI, notificationsAPI, BASE_URL } from '../../services/api';
+import { imageAPI, videoAPI, fileAPI, notificationsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import Profile from '../Profile/Profile';
 import Search from '../Search/Search';
@@ -15,7 +15,6 @@ const Chat = () => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [onlineUsers, setOnlineUsers] = useState([]);
-    const [allUsers, setAllUsers] = useState([]); // Barcha foydalanuvchilar uchun
     const [typingUsers, setTypingUsers] = useState(new Map());
     const [isTyping, setIsTyping] = useState(false);
     const [connected, setConnected] = useState(false);
@@ -26,12 +25,16 @@ const Chat = () => {
     const [showCreateGroup, setShowCreateGroup] = useState(false);
     const [currentChatId] = useState('general');
     const [userAvatar, setUserAvatar] = useState(user?.avatar || '');
-    const [groups, setGroups] = useState([]);
     const [selectedChat, setSelectedChat] = useState(null);
     const [chatList, setChatList] = useState([]);
+    // eslint-disable-next-line no-unused-vars
+    const [groups, setGroups] = useState([]);
+    // eslint-disable-next-line no-unused-vars
+    const [allUsers, setAllUsers] = useState([]);
+    // eslint-disable-next-line no-unused-vars
+    const [notifications, setNotifications] = useState([]);
 
     // Notification states
-    const [notifications, setNotifications] = useState([]);
     const [unreadCounts, setUnreadCounts] = useState({});
     const [totalUnread, setTotalUnread] = useState(0);
 
@@ -74,9 +77,10 @@ const Chat = () => {
     useEffect(() => {
         if (user && token) {
             loadGroups();
-            loadAllUsers(); // Barcha foydalanuvchilarni yuklash
-            loadNotifications(); // Bildirishnomalarni yuklash
+            loadAllUsers();
+            loadNotifications();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, token]);
 
     // Initialize chat list with general chat
@@ -170,7 +174,7 @@ const Chat = () => {
                         memberCount: group.memberCount,
                         lastMessage: group.lastMessage?.text || 'Guruh yaratildi',
                         time: group.lastMessage ? formatTime(group.lastMessage.timestamp) : formatTime(group.createdAt),
-                        unread: unreadCounts[group.id] || 0
+                        unread: (unreadCounts && unreadCounts[group.id]) || 0
                     }));
 
                     setChatList(groupChats);
@@ -220,13 +224,13 @@ const Chat = () => {
 
             // Update local state
             setUnreadCounts(prev => {
-                const newCounts = { ...prev };
+                const newCounts = { ...(prev || {}) };
                 delete newCounts[chatId];
                 return newCounts;
             });
 
             // Recalculate total
-            const newTotal = Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
+            const newTotal = Object.values(unreadCounts || {}).reduce((sum, count) => sum + count, 0);
             setTotalUnread(newTotal);
 
             // Emit socket event
@@ -241,39 +245,44 @@ const Chat = () => {
     useEffect(() => {
         if (user && token) {
             const newSocket = io('http://localhost:5005', {
-                auth: {
-                    token: token
-                },
                 transports: ['websocket', 'polling'],
                 timeout: 20000,
                 reconnection: true,
                 reconnectionDelay: 1000,
-                reconnectionAttempts: 5,
-                maxReconnectionAttempts: 5
+                reconnectionAttempts: 10
             });
 
             newSocket.on('connect', () => {
+                console.log('Socket connected!');
                 setConnected(true);
                 setConnectionStatus('Connected');
-                toast.success('Connected to chat!', {
+
+                // Send user-connected event
+                newSocket.emit('user-connected', {
+                    userId: user.id,
+                    token: token
+                });
+
+                toast.success('Chatga ulandi!', {
                     icon: '🟢',
                     duration: 2000
                 });
             });
 
             newSocket.on('disconnect', (reason) => {
+                console.log('Socket disconnected:', reason);
                 setConnected(false);
                 setConnectionStatus('Disconnected');
                 setTypingUsers(new Map());
-                toast.error('Disconnected from chat', {
+                toast.error('Chatdan uzildi', {
                     icon: '🔴',
                     duration: 3000
                 });
             });
 
             newSocket.on('connect_error', (error) => {
+                console.error('Connection error:', error);
                 setConnectionStatus('Connection failed');
-                // Don't show toast for every connection error to avoid spam
             });
 
             newSocket.on('user-joined', (userData) => {
@@ -286,68 +295,45 @@ const Chat = () => {
             });
 
             newSocket.on('new-message', (message) => {
-                // Chat list ni yangilash - private chat uchun
-                if (message.room && message.room !== 'general' && message.room.includes('-')) {
-                    // Bu private chat xabari
-                    const otherUserId = message.room.split('-').find(id => id !== user.id);
-                    if (otherUserId) {
-                        setChatList(prev => {
-                            const existingChat = prev.find(chat => chat.id === message.room);
-                            if (existingChat) {
-                                // Mavjud chatni yangilash
-                                return prev.map(chat =>
-                                    chat.id === message.room
-                                        ? {
-                                            ...chat,
-                                            lastMessage: message.text || (message.type === 'image' ? '📷 Rasm' : message.type === 'video' ? '🎥 Video' : message.type === 'file' ? '📎 Fayl' : 'Xabar'),
-                                            time: formatTime(message.timestamp),
-                                            unread: message.user.id !== user.id ? (chat.unread || 0) + 1 : 0
-                                        }
-                                        : chat
-                                );
-                            } else {
-                                // Yangi private chat yaratish
-                                const otherUser = onlineUsers.find(u => u.id === otherUserId) ||
-                                    allUsers.find(u => u.id === otherUserId);
-                                if (otherUser) {
-                                    const newPrivateChat = {
-                                        id: message.room,
-                                        name: otherUser.username,
-                                        avatar: otherUser.avatar,
-                                        type: 'private',
-                                        targetUserId: otherUserId,
-                                        lastMessage: message.text || (message.type === 'image' ? '📷 Rasm' : message.type === 'video' ? '🎥 Video' : message.type === 'file' ? '📎 Fayl' : 'Xabar'),
-                                        time: formatTime(message.timestamp),
-                                        unread: message.user.id !== user.id ? 1 : 0
-                                    };
-                                    return [...prev, newPrivateChat];
-                                }
-                            }
-                            return prev;
-                        });
-                    }
-                }
+                console.log('New message received:', message);
 
+                // Xabarni qo'shish
                 setMessages(prev => {
-                    // Agar bu xabar bizdan bo'lsa va tempId mavjud bo'lsa, optimistic xabarni almashtirish
-                    if (message.tempId && message.user.id === user.id) {
-                        return prev.map(msg =>
-                            msg.id === message.tempId && msg.isOptimistic
-                                ? {
-                                    ...message,
-                                    user: { ...message.user, avatar: userAvatar },
-                                    isDelivered: true,
-                                    isRead: false
-                                }
-                                : msg
-                        );
+                    // Dublikat xabarlarni oldini olish
+                    const exists = prev.find(m => m.id === message.id);
+                    if (exists) {
+                        return prev;
                     }
-                    // Aks holda oddiy qo'shish
+
                     return [...prev, {
-                        ...message,
+                        id: message.id,
+                        text: message.text,
+                        user: {
+                            id: message.senderId,
+                            username: message.senderName,
+                            avatar: message.senderAvatar
+                        },
+                        timestamp: message.createdAt,
+                        type: message.type || 'text',
+                        fileUrl: message.fileUrl,
                         isDelivered: true,
                         isRead: false
                     }];
+                });
+
+                // Chat list ni yangilash
+                setChatList(prev => {
+                    return prev.map(chat => {
+                        if (chat.id === message.chatId) {
+                            return {
+                                ...chat,
+                                lastMessage: message.text || (message.type === 'image' ? '📷 Rasm' : message.type === 'video' ? '🎥 Video' : 'Xabar'),
+                                time: formatTime(message.createdAt),
+                                unread: message.senderId !== user.id ? (chat.unread || 0) + 1 : 0
+                            };
+                        }
+                        return chat;
+                    });
                 });
             });
 
@@ -435,7 +421,7 @@ const Chat = () => {
 
                 // Update unread counts
                 setUnreadCounts(prev => ({
-                    ...prev,
+                    ...(prev || {}),
                     [data.chatId]: data.unreadCount
                 }));
 
@@ -474,26 +460,20 @@ const Chat = () => {
         // Xabarlar ko'rinishi bilan avtomatik o'qish
         if (messages.length > 0 && socket && selectedChat) {
             const unreadMessages = messages.filter(msg =>
-                msg.user.id !== user.id &&
+                msg.user?.id !== user?.id &&
                 msg.status !== 'read'
             );
 
             if (unreadMessages.length > 0) {
-                // 1 soniya kutib o'qilgan deb belgilash
                 setTimeout(() => {
                     unreadMessages.forEach(msg => {
-                        if (selectedChat.id === 'general') {
-                            // General chat uchun
-                            socket.emit('mark-message-read', msg.id);
-                        } else {
-                            // Private chat uchun
-                            socket.emit('mark-message-read', msg.id);
-                        }
+                        socket.emit('mark-message-read', msg.id);
                     });
                 }, 1000);
             }
         }
-    }, [messages, socket, selectedChat, user.id]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [messages, socket, selectedChat?.id, user?.id]);
 
     // Xabarlarni o'qilgan deb belgilash - faqat boshqa foydalanuvchilarning xabarlari uchun
     useEffect(() => {
@@ -571,35 +551,36 @@ const Chat = () => {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (newMessage.trim() && socket && connected) {
+        if (newMessage.trim() && socket && connected && selectedChat) {
             const messageText = newMessage.trim();
-            const tempId = Date.now(); // Vaqtinchalik ID
+            const tempId = Date.now();
 
-            // Darhol xabarni ko'rsatish (optimistic update)
+            // Optimistic update
             const optimisticMessage = {
                 id: tempId,
                 text: messageText,
                 user: {
                     id: user.id,
                     username: user.username,
-                    avatar: userAvatar // Hozirgi avatar ni ishlatish
+                    avatar: userAvatar
                 },
                 timestamp: new Date(),
-                status: 'sent', // Dastlab sent status
-                readBy: [],
-                isDelivered: false, // Hali yuborilmagan
+                isDelivered: false,
                 isRead: false,
-                isOptimistic: true // Bu optimistic xabar ekanligini belgilash
+                isOptimistic: true
             };
 
             setMessages(prev => [...prev, optimisticMessage]);
             setNewMessage('');
             handleStopTyping();
 
+            // Socket orqali yuborish
             socket.emit('send-message', {
                 text: messageText,
-                chatId: selectedChat.id, // selectedChat.id ni ishlatish
-                tempId: tempId // Server ga vaqtinchalik ID yuborish
+                chatId: selectedChat.id,
+                senderId: user.id,
+                type: 'text',
+                tempId: tempId
             });
         }
     };
@@ -1056,37 +1037,73 @@ const Chat = () => {
         toast.success('Logged out successfully');
     };
 
-    const handleUserSelect = (selectedUser) => {
-        // Private chat yaratish
-        const chatId = [user.id, selectedUser.id].sort().join('-');
-        const privateChat = {
-            id: chatId,
-            name: selectedUser.username,
-            avatar: selectedUser.avatar,
-            type: 'private',
-            targetUserId: selectedUser.id,
-            lastMessage: 'Yangi chat',
-            time: 'Hozir',
-            unread: 0
-        };
+    const handleUserSelect = async (selectedUser) => {
+        try {
+            // Private chat yaratish
+            const chatId = [user.id, selectedUser.id].sort().join('-');
+            const privateChat = {
+                id: chatId,
+                name: selectedUser.username,
+                avatar: selectedUser.avatar,
+                type: 'private',
+                targetUserId: selectedUser.id,
+                lastMessage: 'Yangi chat',
+                time: 'Hozir',
+                unread: 0
+            };
 
-        // Chat list ga qo'shish (agar mavjud bo'lmasa)
-        setChatList(prev => {
-            const exists = prev.find(chat => chat.id === chatId);
-            if (!exists) {
-                return [...prev, privateChat];
+            // Chat list ga qo'shish (agar mavjud bo'lmasa)
+            setChatList(prev => {
+                const exists = prev.find(chat => chat.id === chatId);
+                if (!exists) {
+                    return [...prev, privateChat];
+                }
+                return prev;
+            });
+
+            setSelectedChat(privateChat);
+
+            // Private chat xabarlarini yuklash
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`http://localhost:5005/api/messages/${chatId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.messages) {
+                        setMessages(data.messages.map(msg => ({
+                            id: msg.id,
+                            text: msg.text,
+                            user: {
+                                id: msg.senderId,
+                                username: msg.senderName || selectedUser.username,
+                                avatar: msg.senderAvatar || selectedUser.avatar
+                            },
+                            timestamp: msg.createdAt,
+                            type: msg.type || 'text',
+                            fileUrl: msg.fileUrl
+                        })));
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load messages:', error);
+                setMessages([]);
             }
-            return prev;
-        });
 
-        setSelectedChat(privateChat);
+            // Socket room ga qo'shilish
+            if (socket) {
+                socket.emit('join-chat', chatId);
+            }
 
-        // Private chat xabarlarini yuklash
-        if (socket) {
-            socket.emit('get-private-messages', { targetUserId: selectedUser.id });
+            toast.success(`${selectedUser.username} bilan chat boshlandi`);
+        } catch (error) {
+            console.error('Error selecting user:', error);
+            toast.error('Chatni ochishda xato');
         }
-
-        toast.success(`${selectedUser.username} bilan chat boshlandi`);
     };
 
     const handleGroupCreated = (newGroup) => {
@@ -1236,7 +1253,7 @@ const Chat = () => {
                 </div>
 
                 <div className="chat-list">
-                    {chatList.map(chat => (
+                    {chatList && chatList.length > 0 ? chatList.map(chat => (
                         <div
                             key={chat.id}
                             className={`chat-item ${selectedChat?.id === chat.id ? 'active' : ''}`}
@@ -1248,48 +1265,48 @@ const Chat = () => {
                                     markChatAsRead(chat.id);
                                 }
 
-                                // Agar general chat bo'lsa, general xabarlarni yuklash
-                                if (chat.id === 'general') {
-                                    // General chat xabarlarini qayta yuklash
+                                // Load messages based on chat type
+                                if (chat.type === 'group') {
                                     if (socket) {
-                                        socket.emit('get-group-messages', { groupId: 'general' });
+                                        socket.emit('join-chat', chat.id);
                                     }
-                                } else if (chat.type === 'group') {
-                                    // Group chat bo'lsa, group xabarlarni yuklash
+                                } else if (chat.type === 'private') {
                                     if (socket) {
-                                        socket.emit('join-group', { groupId: chat.id });
-                                        socket.emit('get-group-messages', { groupId: chat.id });
-                                    }
-                                } else {
-                                    // Private chat bo'lsa, private xabarlarni yuklash
-                                    if (socket && chat.targetUserId) {
-                                        socket.emit('get-private-messages', { targetUserId: chat.targetUserId });
+                                        socket.emit('join-chat', chat.id);
                                     }
                                 }
                             }}
                         >
                             <div className="chat-item-avatar-container">
-                                <img src={chat.avatar} alt={chat.name} className="chat-item-avatar" />
+                                <img src={chat.avatar || 'https://ui-avatars.com/api/?name=User'} alt={chat.name} className="chat-item-avatar" />
                                 {chat.icon && chat.type === 'group' && (
                                     <div className="chat-item-icon">{chat.icon}</div>
                                 )}
                             </div>
                             <div className="chat-item-content">
                                 <div className="chat-item-header">
-                                    <h4 className="chat-item-name">{chat.name}</h4>
-                                    <span className="chat-item-time">{chat.time}</span>
+                                    <h4 className="chat-item-name">{chat.name || 'Unknown'}</h4>
+                                    <span className="chat-item-time">{chat.time || ''}</span>
                                 </div>
                                 <div className="chat-item-footer">
                                     <p className="chat-item-message">
-                                        {chat.lastMessage}
+                                        {chat.lastMessage || 'Xabar yo\'q'}
                                     </p>
-                                    {(unreadCounts[chat.id] || 0) > 0 && (
-                                        <span className="chat-item-unread">{unreadCounts[chat.id] > 99 ? '99+' : unreadCounts[chat.id]}</span>
+                                    {((unreadCounts && unreadCounts[chat.id]) || 0) > 0 && (
+                                        <span className="chat-item-unread">{(unreadCounts && unreadCounts[chat.id]) > 99 ? '99+' : (unreadCounts && unreadCounts[chat.id])}</span>
                                     )}
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    )) : (
+                        <div className="no-chats">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+                            </svg>
+                            <h3>Hozircha chatlar yo'q</h3>
+                            <p>Yangi chat boshlash uchun qidiruv tugmasini bosing</p>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -1370,8 +1387,8 @@ const Chat = () => {
                                     <p>Quyidagi maydondan xabar yozing va suhbatni boshlang.</p>
                                 </div>
                             ) : (
-                                messages.map((message, index) => (
-                                    <div key={message.id || message._id}>
+                                messages && messages.length > 0 ? messages.map((message, index) => (
+                                    <div key={message.id || message._id || index}>
                                         {shouldShowDateSeparator(message, messages[index - 1]) && (
                                             <div className="date-separator">
                                                 <span className="date-text">
@@ -1382,11 +1399,11 @@ const Chat = () => {
                                                 </span>
                                             </div>
                                         )}
-                                        <div className={`message ${message.user.id === user.id ? 'own' : 'other'}`}>
+                                        <div className={`message ${message.user?.id === user?.id ? 'own' : 'other'}`}>
                                             <div className="message-wrapper">
                                                 <img
-                                                    src={message.user.id === user.id ? userAvatar : message.user.avatar}
-                                                    alt={message.user.username}
+                                                    src={message.user?.id === user?.id ? userAvatar : (message.user?.avatar || 'https://ui-avatars.com/api/?name=User')}
+                                                    alt={message.user?.username || 'User'}
                                                     className="message-avatar"
                                                 />
                                                 <div className="message-bubble">
@@ -1467,7 +1484,6 @@ const Chat = () => {
                                                                             </svg>
                                                                         </>
                                                                     ) : (
-                                                                        // Bitta galochka - yuborilgan lekin o'qilmagan
                                                                         <svg viewBox="0 0 24 24" fill="currentColor" className="status-icon sent">
                                                                             <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                                                                         </svg>
@@ -1480,7 +1496,15 @@ const Chat = () => {
                                             </div>
                                         </div>
                                     </div>
-                                ))
+                                )) : (
+                                    <div className="no-messages">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+                                        </svg>
+                                        <p>Hozircha xabarlar yo'q</p>
+                                        <p>Birinchi xabarni yuboring!</p>
+                                    </div>
+                                )
                             )}
 
                             <div ref={messagesEndRef} />

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_URL, API_BASE_URL } from './config';
+import { API_URL, API_BASE_URL } from '../config';
 
 export const BASE_URL = API_BASE_URL;
 

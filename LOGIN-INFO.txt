@@ -1,0 +1,25 @@
+═══════════════════════════════════════════════════════
+    TELEGRAM CLONE - LOGIN MA'LUMOTLARI
+═══════════════════════════════════════════════════════
+
+🌐 Sayt: http://localhost:3001
+
+📝 TEST FOYDALANUVCHILAR:
+
+👤 Farrux
+   Email: farrux@test.com
+   Parol: 123456
+
+👤 Shohruh
+   Email: shohruh@test.com
+   Parol: 123456
+
+═══════════════════════════════════════════════════════
+
+💡 MASLAHAT:
+- Ikki xil brauzer ochib, turli foydalanuvchilar bilan
+  kirish mumkin (masalan: Chrome va Edge)
+- Real-time chat ko'rish uchun ikki account bilan
+  bir vaqtda chat qiling!
+
+═══════════════════════════════════════════════════════

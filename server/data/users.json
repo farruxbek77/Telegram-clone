@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1",
+    "username": "Farrux",
+    "email": "farrux@test.com",
+    "phone": "+998901234567",
+    "password": "$2a$10$m22UHAVdjSNeiWt/ySOd7uQIkEU/Ck8bigpCxTJB.EwRI27lX4.Ve",
+    "avatar": "https://ui-avatars.com/api/?name=Farrux&background=4CAF50&color=fff",
+    "isOnline": false,
+    "lastSeen": "2026-02-01T13:38:35.860Z",
+    "createdAt": "2026-02-01T13:00:09.006Z",
+    "socketId": null
+  },
+  {
+    "id": "2",
+    "username": "Shohruh",
+    "email": "shohruh@test.com",
+    "phone": "+998901234568",
+    "password": "$2a$10$m22UHAVdjSNeiWt/ySOd7uQIkEU/Ck8bigpCxTJB.EwRI27lX4.Ve",
+    "avatar": "https://ui-avatars.com/api/?name=Shohruh&background=2196F3&color=fff",
+    "isOnline": false,
+    "lastSeen": "2026-02-01T13:39:00.544Z",
+    "createdAt": "2026-02-01T13:00:09.006Z",
+    "socketId": null
+  }
+]
