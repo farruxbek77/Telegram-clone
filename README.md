@@ -134,33 +134,6 @@ npm start
   - Notification preferences
   - Theme (Dark/Light)
 
-## Project Structure
-
-```
-telegram-clone/
-├── client/                 # React frontend
-│   ├── public/
-│   └── src/
-│       ├── components/     # React components
-│       │   ├── Auth/       # Login/Register
-│       │   ├── Chat/       # Main chat interface
-│       │   ├── Profile/    # User profile
-│       │   ├── Search/     # User search
-│       │   ├── Settings/   # App settings
-│       │   └── CreateGroup/# Group creation
-│       ├── context/        # React context
-│       ├── services/       # API services
-│       └── App.js
-├── server/                 # Node.js backend
-│   ├── middleware/         # Auth middleware
-│   ├── models/            # Data models
-│   ├── routes/            # API routes
-│   ├── uploads/           # File uploads
-│   └── server-simple.js   # Main server file
-└── README.md
-
-```
-
 ## Features in Detail
 
 ### Real-time Messaging
@@ -200,7 +173,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 MIT
 
 ## Author
-Farruxbek
+Farruxbek Sadulloyev
 
 ## Acknowledgments
 - Telegram for design inspiration
