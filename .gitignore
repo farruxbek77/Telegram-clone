@@ -46,3 +46,7 @@ server/uploads/*.png
 server/uploads/*.mp4
 server/uploads/*.pdf
 !server/uploads/.gitkeep
+# Env files
+*.env
+client/*.env*
+server/*.env*
