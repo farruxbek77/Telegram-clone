@@ -79,16 +79,31 @@ npm start
 
 ## Deployment
 
-### Render.com
+### Render.com (Backend)
 
 1. Push your code to GitHub
-2. Connect your repository to Render
-3. Use the following settings:
-   - **Build Command:** `cd server && npm install`
-   - **Start Command:** `cd server && node server-simple.js`
+2. Create a new Web Service on Render.com
+3. Connect your repository: `farruxbek77/Telegram-clone`
+4. Use the following settings:
+   - **Build Command:** `npm run build`
+   - **Start Command:** `npm start`
    - **Environment Variables:**
-     - `JWT_SECRET`: (generate a random string)
-     - `PORT`: 5005
+     - `MONGODB_URI`: Your MongoDB connection string (MongoDB Atlas)
+     - `JWT_SECRET`: Generate a strong random string
+     - `CLIENT_URL`: Your frontend URL (e.g., https://your-app.vercel.app)
+
+### Vercel/Netlify (Frontend)
+
+1. Create a new project
+2. Connect your repository
+3. Settings:
+   - **Root Directory:** `client`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `build`
+   - **Environment Variables:**
+     - `REACT_APP_API_URL`: Your backend URL (e.g., https://telegram-clone-backend.onrender.com)
+
+**Note:** Alternatively, you can use the included `render.yaml` file for automatic deployment via Render Blueprint.
 
 ## Usage
 
