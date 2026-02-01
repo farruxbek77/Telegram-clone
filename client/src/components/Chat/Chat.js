@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import { useAuth } from '../../context/AuthContext';
-import { imageAPI, videoAPI, fileAPI, notificationsAPI } from '../../services/api';
+import { imageAPI, videoAPI, fileAPI, notificationsAPI, BASE_URL } from '../../services/api';
 import toast from 'react-hot-toast';
 import Profile from '../Profile/Profile';
 import Search from '../Search/Search';
