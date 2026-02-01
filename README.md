@@ -1,113 +1,193 @@
 # Telegram Clone
 
-React va Node.js yordamida yaratilgan to'liq funksional Telegram clone ilovasi.
+Modern Telegram clone built with React, Node.js, Socket.IO, and Express.
 
-## Xususiyatlar
+## Features
 
-- 🔐 Foydalanuvchi autentifikatsiyasi (Login/Register)
-- 💬 Real-time chat xabarlashuv
-- 👥 Guruh chatlari
-- 📷 Rasm va video yuklash
-- 👤 Foydalanuvchi profili
-- 🔍 Foydalanuvchi qidiruv
-- ⚙️ Sozlamalar
-- 🟢 Online status ko'rsatish
-- ✓ Xabar statuslari (yuborildi, o'qildi)
+- 💬 Real-time messaging with Socket.IO
+- 👥 Group chats with multi-step creation
+- 🔒 Private messaging
+- 📷 Image sharing
+- 🎥 Video sharing
+- 📎 File sharing (all types up to 50MB)
+- ✅ Message read receipts (WhatsApp-style)
+- 🔔 Real-time notifications with badge counts
+- 🌙 Dark/Light theme support
+- ⚙️ User settings (Privacy, Notifications, Appearance)
+- 👤 User profiles with avatar upload
+- 🟢 Online/Offline status tracking
+- 📱 Fully responsive design
+- 🎨 Telegram-style UI
 
-## Texnologiyalar
+## Tech Stack
 
 ### Frontend
-- React.js
-- Socket.io-client
+- React 18
+- Socket.IO Client
 - Axios
-- CSS3
+- React Hot Toast
+- CSS3 with Telegram-style design
 
 ### Backend
 - Node.js
-- Express.js
-- MongoDB
-- Socket.io
+- Express
+- Socket.IO
 - JWT Authentication
-- Multer (fayl yuklash)
+- Multer (file uploads)
+- Bcrypt (password hashing)
 
-## O'rnatish
+## Installation
 
-### Talablar
-- Node.js (v14 yoki yuqori)
-- MongoDB
+### Prerequisites
+- Node.js >= 18.0.0
+- npm >= 9.0.0
 
-### 1. Repositoriyani klonlash
+### Local Development
+
+1. Clone the repository:
 ```bash
 git clone https://github.com/farruxbek77/Telegram-clone.git
 cd Telegram-clone
 ```
 
-### 2. Dependencies o'rnatish
-
-Client uchun:
+2. Install dependencies:
 ```bash
-cd client
+# Install server dependencies
+cd server
+npm install
+
+# Install client dependencies
+cd ../client
 npm install
 ```
 
-Server uchun:
+3. Start the development servers:
+
+**Server (Port 5005):**
 ```bash
 cd server
-npm install
+node server-simple.js
 ```
 
-### 3. Environment o'zgaruvchilarini sozlash
-
-`server/.env` faylini yarating:
-```
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-PORT=5000
-```
-
-`client/.env` faylini yarating:
-```
-REACT_APP_API_URL=http://localhost:5000
-```
-
-### 4. Ilovani ishga tushirish
-
-Server:
-```bash
-cd server
-npm start
-```
-
-Client:
+**Client (Port 3001):**
 ```bash
 cd client
 npm start
 ```
 
-Ilova `http://localhost:3000` da ochiladi.
+4. Open your browser and navigate to `http://localhost:3001`
 
-## Loyiha strukturasi
+## Deployment
+
+### Render.com
+
+1. Push your code to GitHub
+2. Connect your repository to Render
+3. Use the following settings:
+   - **Build Command:** `cd server && npm install`
+   - **Start Command:** `cd server && node server-simple.js`
+   - **Environment Variables:**
+     - `JWT_SECRET`: (generate a random string)
+     - `PORT`: 5005
+
+## Usage
+
+### Authentication
+- Click "Chatga Kirish" button to enter (passwordless authentication)
+- System automatically creates a user account
+
+### Messaging
+- Select a chat from the left panel
+- Type your message and press Enter or click Send
+- Messages show read receipts (✓ = sent, ✓✓ = read)
+
+### Group Chats
+- Click the group icon in the header
+- Follow the 3-step process:
+  1. Enter group info (name, description, icon)
+  2. Select members
+  3. Confirm and create
+
+### File Sharing
+- Click the image icon to share photos
+- Click the video icon to share videos
+- Click the document icon to share any file type (up to 50MB)
+
+### Settings
+- Click the settings icon to customize:
+  - Privacy settings
+  - Notification preferences
+  - Theme (Dark/Light)
+
+## Project Structure
 
 ```
 telegram-clone/
 ├── client/                 # React frontend
 │   ├── public/
 │   └── src/
-│       ├── components/     # React komponentlar
-│       ├── context/        # Context API
-│       └── services/       # API xizmatlari
+│       ├── components/     # React components
+│       │   ├── Auth/       # Login/Register
+│       │   ├── Chat/       # Main chat interface
+│       │   ├── Profile/    # User profile
+│       │   ├── Search/     # User search
+│       │   ├── Settings/   # App settings
+│       │   └── CreateGroup/# Group creation
+│       ├── context/        # React context
+│       ├── services/       # API services
+│       └── App.js
 ├── server/                 # Node.js backend
-│   ├── models/            # MongoDB modellari
+│   ├── middleware/         # Auth middleware
+│   ├── models/            # Data models
 │   ├── routes/            # API routes
-│   ├── middleware/        # Middleware funksiyalar
-│   └── uploads/           # Yuklangan fayllar
+│   ├── uploads/           # File uploads
+│   └── server-simple.js   # Main server file
 └── README.md
+
 ```
 
-## Litsenziya
+## Features in Detail
 
+### Real-time Messaging
+- Instant message delivery using Socket.IO
+- Typing indicators
+- Online/offline status
+- Last seen timestamps
+
+### Notifications
+- Real-time notification badges
+- Unread message counts per chat
+- Total unread count in header
+- Auto-clear on chat open
+
+### File Uploads
+- Images (up to 5MB)
+- Videos (up to 50MB)
+- Documents (up to 50MB)
+- All file types supported except dangerous executables
+
+### Security
+- JWT-based authentication
+- Secure file upload validation
+- XSS protection
+- CORS configuration
+
+## Browser Support
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
 MIT
 
-## Muallif
-
+## Author
 Farruxbek
+
+## Acknowledgments
+- Telegram for design inspiration
+- Socket.IO for real-time communication
+- React team for the amazing framework
